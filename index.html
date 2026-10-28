@@ -1,103 +1,1979 @@
-<div class="swap-wrapper">
-    <div class="swap-card">
-        <div class="token-section">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span class="label" style="margin-bottom: 0;">Vendes</span>
-                <span id="userBalance" style="font-size: 12px; color: var(--text-dim); font-weight: 600;">Balance: 0.00 BNB</span>
-            </div>
-            <div class="input-row">
-                <input type="number" id="amtIn" placeholder="0.0" oninput="updatePrice()" step="any">
-                <div class="token-selector">
-                    <div style="width:22px; height:22px; border-radius:50%; background:#F3BA2F;"></div>
-                    <span>BNB</span>
-                </div>
-            </div>
-        </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Carton Cake BCH Racer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bch-green: #0AC18E;
+            --bch-dark: #068460;
+            --cardboard: #C89B6E;
+            --cardboard-dark: #9C7044;
+            --frosting-pink: #FF6B9D;
+        }
 
-        <div class="divider">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-        </div>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
 
-        <div class="token-section" style="margin-top:-8px; padding-top:32px;">
-            <span class="label">Recibes (Estimado)</span>
-            <div class="input-row">
-                <input type="text" id="amtOut" placeholder="0.00" readonly>
-                <div class="token-selector">
-                    <div style="width:22px; height:22px; border-radius:50%; background:#26a17b;"></div>
-                    <span>USDT</span>
-                </div>
-            </div>
-        </div>
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            height: 100dvh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
 
-        <button class="main-btn" id="sBtn" onclick="handleAction()">Conectar Wallet</button>
-    </div>
-</div>
+        .font-arcade {
+            font-family: 'Fredoka', cursive, sans-serif;
+        }
 
-<script>
-    // Variables globales (Asegúrate de que estén definidas arriba en tu script principal)
-    // const PAN_ROUTER = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
-    // const WBNB = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c";
-    // const USDT = "0x55d398326f99059fF775485246999027B3197955";
+        /* Estilo de cartón para paneles UI */
+        .cardboard-box {
+            background: linear-gradient(145deg, #d7ab7e, #b8895b);
+            border: 4px solid #6e4720;
+            box-shadow: 0 10px 0 #523315, 0 15px 25px rgba(0,0,0,0.5);
+            position: relative;
+        }
 
-    async function connectWallet() {
-        if (window.ethereum) {
-            try {
-                const provider = new ethers.BrowserProvider(window.ethereum);
-                const accounts = await provider.send("eth_requestAccounts", []);
-                userAddress = accounts[0];
-                
-                // Actualizar botón de la nav (si existe el ID wBtn)
-                const wBtn = document.getElementById('wBtn');
-                if(wBtn) wBtn.innerText = userAddress.substring(0,6) + "...";
-                
-                // Cargar Balance en tiempo real
-                const balance = await provider.getBalance(userAddress);
-                const formattedBalance = parseFloat(ethers.formatEther(balance)).toFixed(4);
-                document.getElementById('userBalance').innerText = `Balance: ${formattedBalance} BNB`;
-                
-                updateButton();
-                updatePrice(); 
-                if(typeof showToast === "function") showToast("Billetera vinculada", false);
-            } catch (e) { 
-                console.error("Error conexión:", e); 
+        .cardboard-tape {
+            background: rgba(245, 222, 179, 0.65);
+            border-left: 2px dashed rgba(139, 90, 43, 0.35);
+            border-right: 2px dashed rgba(139, 90, 43, 0.35);
+            transform: rotate(-3deg);
+        }
+
+        .btn-bch {
+            background: linear-gradient(180deg, #10e0a7 0%, #0AC18E 55%, #07966e 100%);
+            border: 3px solid #04543d;
+            box-shadow: 0 6px 0 #04543d, 0 10px 15px rgba(10, 193, 142, 0.35);
+            transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.15s ease;
+        }
+
+        .btn-bch:hover {
+            filter: brightness(1.06);
+        }
+
+        .btn-bch:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #04543d, 0 4px 8px rgba(10, 193, 142, 0.3);
+        }
+
+        .btn-frosting {
+            background: linear-gradient(180deg, #ff85b3 0%, #ff5291 100%);
+            border: 3px solid #9e194a;
+            box-shadow: 0 5px 0 #7a1138;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+
+        .btn-frosting:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #7a1138;
+        }
+
+        .car-card {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+        }
+
+        .car-card.selected {
+            transform: translateY(-6px) scale(1.03);
+            border-color: #0AC18E;
+            box-shadow: 0 0 0 4px rgba(10, 193, 142, 0.4), 0 10px 20px rgba(0,0,0,0.4);
+            background: rgba(15, 23, 42, 0.95);
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 540px;
+            height: 100dvh;
+            max-height: 920px;
+            display: flex;
+            flex-direction: column;
+            background: #111827;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.85);
+            overflow: hidden;
+        }
+
+        @media (min-width: 640px) {
+            #game-container {
+                height: 95dvh;
+                border-radius: 24px;
+                border: 4px solid #334155;
             }
         }
-    }
 
-    async function updatePrice() {
-        const val = document.getElementById('amtIn').value;
-        const out = document.getElementById('amtOut');
-        
-        if (!val || val <= 0 || isNaN(val)) { 
-            out.value = ""; 
-            return; 
+        canvas#gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
         }
 
-        try {
-            // RPC de alta disponibilidad
-            const rpcProvider = new ethers.JsonRpcProvider("https://binance.llamarpc.com");
-            const router = new ethers.Contract(PAN_ROUTER, 
-                ["function getAmountsOut(uint amountIn, address[] memory path) view returns (uint[] memory)"], 
-                rpcProvider
-            );
+        @keyframes pulse-fast {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
 
-            // Evitamos errores de precisión limitando a 18 decimales antes de convertir
-            const amountIn = ethers.parseEther(parseFloat(val).toFixed(18));
-            const amounts = await router.getAmountsOut(amountIn, [WBNB, USDT]);
-            
-            // USDT en BSC tiene 18 decimales
-            const formattedOut = ethers.formatUnits(amounts[1], 18);
-            
-            // Formateo con comas para miles y 2 decimales
-            out.value = parseFloat(formattedOut).toLocaleString('en-US', {
-                minimumFractionDigits: 2, 
-                maximumFractionDigits: 2
+        .animate-pulse-fast {
+            animation: pulse-fast 0.8s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Contenedor Principal del Juego -->
+    <div id="game-container">
+
+        <!-- HUD Superior -->
+        <div id="hud" class="absolute top-0 left-0 right-0 z-20 p-2 sm:p-3 pointer-events-none flex flex-col gap-1.5">
+            <!-- Fila Superior: BCH, Puntos, Vidas y Controles de Audio/Pausa -->
+            <div class="flex items-center justify-between gap-2 bg-slate-900/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl px-3 py-2 shadow-lg">
+                
+                <!-- Monedas BCH y Combo -->
+                <div class="flex items-center gap-2">
+                    <div class="w-9 h-9 rounded-full bg-[#0AC18E] border-2 border-emerald-200 flex items-center justify-center shadow-md shadow-emerald-500/30 transform -rotate-12 shrink-0">
+                        <span class="text-white font-black text-lg leading-none">₿</span>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span id="hud-bch" class="font-arcade text-emerald-400 text-lg sm:text-xl font-bold tracking-tight leading-none">0.00</span>
+                            <span class="text-[10px] font-bold bg-emerald-950 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-700">BCH</span>
+                            <span id="hud-combo" class="hidden text-xs font-black bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded-full animate-pulse-fast">x2</span>
+                        </div>
+                        <div class="text-[11px] text-slate-300 font-semibold flex items-center gap-2 mt-0.5">
+                            <span>PTS: <strong id="hud-score" class="text-white">0</strong></span>
+                            <span class="text-slate-500">|</span>
+                            <span class="text-amber-300">RÉCORD: <strong id="hud-best">0</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vidas y Botones de Sistema -->
+                <div class="flex items-center gap-2">
+                    <!-- Contenedor de Corazones/Escudos de Cartón -->
+                    <div id="hud-lives" class="flex items-center gap-1 bg-slate-800/90 px-2 py-1 rounded-xl border border-slate-700">
+                        <!-- Se llena por JS -->
+                    </div>
+
+                    <!-- Botón Audio -->
+                    <button id="btn-mute" class="pointer-events-auto w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-600 flex items-center justify-center text-white transition" title="Sonido (M)">
+                        <span id="mute-icon">🔊</span>
+                    </button>
+
+                    <!-- Botón Pausa -->
+                    <button id="btn-pause" class="pointer-events-auto w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-600 flex items-center justify-center text-white transition" title="Pausar (P)">
+                        <span id="pause-icon">⏸️</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Fila Inferior del HUD: Velocidad, Powerups activos y Barra de Salto/Turbo -->
+            <div class="flex items-center justify-between gap-2 px-1">
+                <div class="flex items-center gap-1.5 bg-slate-900/80 backdrop-blur px-2.5 py-1 rounded-xl border border-slate-700/70 text-xs font-bold text-slate-200">
+                    <span class="text-amber-400">⚡ NIVEL <span id="hud-level">1</span></span>
+                    <span class="text-slate-500">•</span>
+                    <span id="hud-speed" class="text-cyan-300">60 KM/H</span>
+                </div>
+
+                <!-- Indicadores de Pastelitos Especiales Activos -->
+                <div id="hud-powerups" class="flex items-center gap-1.5">
+                    <div id="badge-magnet" class="hidden items-center gap-1 bg-fuchsia-900/90 border border-fuchsia-400 text-fuchsia-100 px-2 py-0.5 rounded-full text-xs font-bold shadow">
+                        <span>🧁🧲</span>
+                        <span id="magnet-timer">8s</span>
+                    </div>
+                    <div id="badge-shield" class="hidden items-center gap-1 bg-cyan-900/90 border border-cyan-400 text-cyan-100 px-2 py-0.5 rounded-full text-xs font-bold shadow">
+                        <span>🧁🛡️ ESCUDO</span>
+                    </div>
+                </div>
+
+                <!-- Estado del Salto / Turbo -->
+                <div class="flex items-center gap-1.5 bg-slate-900/80 backdrop-blur px-2.5 py-1 rounded-xl border border-slate-700/70">
+                    <span class="text-[11px] font-bold text-pink-300">SALTO:</span>
+                    <div class="w-16 h-2.5 bg-slate-700 rounded-full overflow-hidden border border-slate-600">
+                        <div id="hud-jump-bar" class="h-full bg-gradient-to-r from-pink-500 to-amber-400 w-full transition-all duration-75"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lienzo Principal 2D -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Controles Táctiles en Pantalla (Para Móvil y PC opcional) -->
+        <div id="touch-controls" class="absolute bottom-3 left-0 right-0 z-20 px-3 flex items-end justify-between pointer-events-none">
+            <!-- Botones Izquierda / Derecha -->
+            <div class="flex items-center gap-2.5 pointer-events-auto">
+                <button id="btn-left" class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-slate-900/80 active:bg-slate-800 border-2 border-slate-500/80 text-white text-2xl font-bold shadow-lg flex items-center justify-center backdrop-blur-sm active:scale-95 transition">
+                    ⬅️
+                </button>
+                <button id="btn-right" class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-slate-900/80 active:bg-slate-800 border-2 border-slate-500/80 text-white text-2xl font-bold shadow-lg flex items-center justify-center backdrop-blur-sm active:scale-95 transition">
+                    ➡️
+                </button>
+            </div>
+
+            <!-- Hint central en pantallas táctiles -->
+            <div class="hidden sm:flex flex-col items-center text-[11px] text-slate-300/80 bg-slate-900/70 px-3 py-1 rounded-lg border border-slate-700/60">
+                <span>Usa <b>WASD / Flechas</b> o arrastra el carro</span>
+                <span><b>ESPACIO</b> para Saltar Zapatos/Piedras</span>
+            </div>
+
+            <!-- Botón de Salto / Turbo Cake -->
+            <button id="btn-jump" class="pointer-events-auto btn-frosting px-4 h-14 sm:h-16 rounded-2xl text-white font-arcade font-bold text-sm sm:text-base flex flex-col items-center justify-center shadow-xl">
+                <span class="text-lg leading-none">🚀 SALTAR</span>
+                <span class="text-[10px] font-sans uppercase tracking-wider text-pink-100">Turbo Cake</span>
+            </button>
+        </div>
+
+        <!-- PANTALLA DE INICIO / SELECCIÓN DE CARRO CARTON CAKE -->
+        <div id="start-modal" class="absolute inset-0 z-30 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-between p-4 sm:p-6 overflow-y-auto">
+            <div class="w-full max-w-md my-auto flex flex-col items-center">
+                
+                <!-- Encabezado Estilo Caja de Cartón y Glaseado -->
+                <div class="cardboard-box w-full rounded-3xl p-4 sm:p-5 text-center mb-4">
+                    <div class="cardboard-tape w-28 h-6 mx-auto -mt-7 mb-2 rounded-sm"></div>
+                    
+                    <div class="inline-flex items-center gap-1.5 bg-[#0AC18E] text-slate-950 font-black text-xs px-3 py-1 rounded-full border-2 border-white shadow mb-2">
+                        <span>₿ BITCOIN CASH ARCADE 2D</span>
+                    </div>
+
+                    <h1 class="font-arcade text-3xl sm:text-4xl font-extrabold text-white drop-shadow-[0_3px_0_#523315] tracking-wide">
+                        CARTON CAKE <span class="text-[#0AC18E] drop-shadow-[0_3px_0_#044230]">BCH</span>
+                    </h1>
+                    <p class="text-amber-950 font-bold text-xs sm:text-sm mt-1">
+                        ¡Corre en tu auto de cartón glaseado, atrapa BCH y esquiva la chatarra!
+                    </p>
+                </div>
+
+                <!-- Selector de Vehículo -->
+                <div class="w-full bg-slate-900/90 border-2 border-slate-700 rounded-2xl p-3.5 mb-4 shadow-xl">
+                    <h2 class="font-arcade text-center text-pink-400 text-sm sm:text-base uppercase tracking-wider mb-2.5">
+                        🧁 Elige tu Vehículo Carton Cake:
+                    </h2>
+
+                    <div class="grid grid-cols-3 gap-2.5" id="car-selector">
+                        <!-- Opción 1: Clásico -->
+                        <div data-car="classic" class="car-card selected bg-slate-800/90 border-2 border-slate-600 rounded-xl p-2 flex flex-col items-center text-center">
+                            <canvas id="preview-classic" width="80" height="90" class="w-16 h-20 mb-1"></canvas>
+                            <span class="font-arcade text-white text-xs sm:text-sm leading-tight">Cartón Clásico</span>
+                            <span class="text-[10px] text-emerald-400 font-semibold mt-0.5">Equilibrado</span>
+                            <div class="w-full text-[10px] text-slate-300 mt-1 space-y-0.5">
+                                <div>❤️❤️❤️ Vidas</div>
+                                <div>⚡ Velocidad Media</div>
+                            </div>
+                        </div>
+
+                        <!-- Opción 2: Cupcake Turbo -->
+                        <div data-car="cupcake" class="car-card bg-slate-800/90 border-2 border-slate-600 rounded-xl p-2 flex flex-col items-center text-center">
+                            <canvas id="preview-cupcake" width="80" height="90" class="w-16 h-20 mb-1"></canvas>
+                            <span class="font-arcade text-pink-300 text-xs sm:text-sm leading-tight">Cupcake Turbo</span>
+                            <span class="text-[10px] text-amber-300 font-semibold mt-0.5">+Salto y Agilidad</span>
+                            <div class="w-full text-[10px] text-slate-300 mt-1 space-y-0.5">
+                                <div>❤️❤️❤️ Vidas</div>
+                                <div>🚀 Salto Rápido</div>
+                            </div>
+                        </div>
+
+                        <!-- Opción 3: Camioneta Cake -->
+                        <div data-car="truck" class="car-card bg-slate-800/90 border-2 border-slate-600 rounded-xl p-2 flex flex-col items-center text-center">
+                            <canvas id="preview-truck" width="80" height="90" class="w-16 h-20 mb-1"></canvas>
+                            <span class="font-arcade text-cyan-300 text-xs sm:text-sm leading-tight">Camioneta Cake</span>
+                            <span class="text-[10px] text-cyan-400 font-semibold mt-0.5">Blindaje Cartón</span>
+                            <div class="w-full text-[10px] text-slate-300 mt-1 space-y-0.5">
+                                <div>❤️❤️❤️❤️ 4 Vidas</div>
+                                <div>🧲 Mayor Alcance</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guía Rápida de Objetos -->
+                <div class="w-full bg-slate-900/80 border border-slate-700/80 rounded-2xl p-3 mb-4 text-xs text-slate-200 space-y-2">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                        <span class="font-bold text-emerald-400 flex items-center gap-1.5">
+                            <span class="inline-block w-4 h-4 rounded-full bg-[#0AC18E] text-white text-center font-black leading-4 text-[10px]">₿</span>
+                            Atrapa Monedas BCH y Pastelitos:
+                        </span>
+                        <span class="text-amber-300 font-semibold">¡Arma Combos x2, x3, x5!</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center pt-0.5">
+                        <div class="bg-slate-800/80 p-1.5 rounded-lg border border-red-900/50">
+                            <div class="text-base">🥾👟</div>
+                            <div class="font-bold text-red-300 text-[11px]">Zapatos Viejos</div>
+                            <div class="text-[10px] text-slate-400">Esquiva o sáltalos</div>
+                        </div>
+                        <div class="bg-slate-800/80 p-1.5 rounded-lg border border-red-900/50">
+                            <div class="text-base">🗑️🍌</div>
+                            <div class="font-bold text-red-300 text-[11px]">Basura</div>
+                            <div class="text-[10px] text-slate-400">Bolsas y botes</div>
+                        </div>
+                        <div class="bg-slate-800/80 p-1.5 rounded-lg border border-red-900/50">
+                            <div class="text-base">🪨💥</div>
+                            <div class="font-bold text-red-300 text-[11px]">Piedras</div>
+                            <div class="text-[10px] text-slate-400">Rocas en la vía</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón Jugar -->
+                <button id="btn-start" class="btn-bch w-full py-3.5 rounded-2xl font-arcade text-xl sm:text-2xl font-bold text-slate-950 tracking-wide flex items-center justify-center gap-2 cursor-pointer">
+                    <span>🏁 ¡ARRANCAR MOTOR!</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- PANTALLA DE PAUSA -->
+        <div id="pause-modal" class="hidden absolute inset-0 z-30 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="cardboard-box w-full max-w-xs rounded-3xl p-6 text-center">
+                <h2 class="font-arcade text-3xl text-white drop-shadow-[0_2px_0_#523315] mb-2">PAUSA 🧁</h2>
+                <p class="text-amber-950 font-semibold text-sm mb-5">Tu carro de cartón está tomando un respiro.</p>
+                <div class="space-y-3">
+                    <button id="btn-resume" class="btn-bch w-full py-3 rounded-xl font-arcade text-lg text-slate-950 font-bold">
+                        ▶️ CONTINUAR
+                    </button>
+                    <button id="btn-restart-pause" class="btn-frosting w-full py-2.5 rounded-xl font-arcade text-base text-white font-bold">
+                        🔄 REINICIAR CARRERA
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA DE GAME OVER -->
+        <div id="gameover-modal" class="hidden absolute inset-0 z-30 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="w-full max-w-sm flex flex-col items-center">
+                <div class="cardboard-box w-full rounded-3xl p-5 text-center mb-4">
+                    <div class="cardboard-tape w-28 h-6 mx-auto -mt-8 mb-2 rounded-sm"></div>
+                    <div class="text-4xl mb-1">📦💥👟</div>
+                    <h2 class="font-arcade text-3xl text-white drop-shadow-[0_3px_0_#523315]">
+                        ¡CARRO ARRUGADO!
+                    </h2>
+                    <p id="gameover-reason" class="text-amber-950 font-bold text-xs sm:text-sm mt-1">
+                        Chocaste contra demasiados obstáculos en la vía
+                    </p>
+
+                    <!-- Resumen de Resultados -->
+                    <div class="bg-slate-900/95 border-2 border-amber-900/80 rounded-2xl p-4 mt-4 text-left space-y-2.5 shadow-inner">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                            <span class="text-slate-300 text-xs font-semibold">BCH Recolectados:</span>
+                            <span class="font-arcade text-emerald-400 text-xl font-bold flex items-center gap-1">
+                                <span class="inline-block w-5 h-5 rounded-full bg-[#0AC18E] text-slate-950 text-center text-xs leading-5 font-black">₿</span>
+                                <span id="go-bch">0.00 BCH</span>
+                            </span>
+                        </div>
+
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                            <span class="text-slate-300 text-xs font-semibold">Puntuación Final:</span>
+                            <span id="go-score" class="font-arcade text-white text-lg font-bold">0</span>
+                        </div>
+
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                            <span class="text-slate-300 text-xs font-semibold">Mejor Récord:</span>
+                            <span id="go-best" class="font-arcade text-amber-300 text-lg font-bold">0</span>
+                        </div>
+
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-400">Combo Máximo / Saltos:</span>
+                            <span id="go-stats" class="text-pink-300 font-bold">x1 • 0 saltos</span>
+                        </div>
+                    </div>
+
+                    <div id="new-record-badge" class="hidden mt-3 inline-block bg-amber-400 text-slate-950 font-arcade font-bold text-xs px-3 py-1 rounded-full shadow animate-bounce">
+                        🏆 ¡NUEVO RÉCORD PERSONAL!
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="w-full flex flex-col gap-2.5">
+                    <button id="btn-retry" class="btn-bch w-full py-3.5 rounded-2xl font-arcade text-xl font-bold text-slate-950 cursor-pointer">
+                        🔄 ¡REVANCHA RÁPIDA!
+                    </button>
+                    <button id="btn-change-car" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border-2 border-slate-600 w-full py-2.5 rounded-xl font-arcade text-sm font-semibold cursor-pointer transition">
+                        🧁 Cambiar Vehículo Carton Cake
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /**
+         * ============================================================================
+         * CARTON CAKE BCH RACER - MOTOR DE JUEGO 2D COMPLETO EN UN SOLO ARCHIVO
+         * ============================================================================
+         */
+
+        // --- 1. SINTETIZADOR DE SONIDO (WEB AUDIO API - SIN ARCHIVOS EXTERNOS) ---
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) {
+                        this.ctx = new AudioCtx();
+                    }
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            toggleMute() {
+                this.muted = !this.muted;
+                return this.muted;
+            }
+
+            // Sonido metálico y alegre al agarrar moneda BCH
+            playBCH(combo = 1) {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const baseFreq = 587.33 + Math.min(combo * 35, 350); // D5 subiendo con el combo
+
+                // Primer tono
+                const osc1 = this.ctx.createOscillator();
+                const gain1 = this.ctx.createGain();
+                osc1.type = 'triangle';
+                osc1.frequency.setValueAtTime(baseFreq, now);
+                osc1.frequency.setValueAtTime(baseFreq * 1.33, now + 0.065);
+
+                gain1.gain.setValueAtTime(0.18, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+
+                osc1.connect(gain1);
+                gain1.connect(this.ctx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.25);
+            }
+
+            // Sonido al recoger un Pastelito Power-Up
+            playCakePowerup() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5 E5 G5 C6
+                notes.forEach((freq, idx) => {
+                    const now = this.ctx.currentTime + idx * 0.055;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now);
+                    gain.gain.setValueAtTime(0.16, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.19);
+                });
+            }
+
+            // Sonido de Salto / Turbo
+            playJump() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(620, now + 0.22);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.26);
+            }
+
+            // Sonido de choque contra zapatos, basura o piedras
+            playCrash(shielded = false) {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = shielded ? 'triangle' : 'sawtooth';
+                osc.frequency.setValueAtTime(shielded ? 300 : 140, now);
+                osc.frequency.exponentialRampToValueAtTime(38, now + 0.32);
+
+                gain.gain.setValueAtTime(0.28, now);
+                gain.gain.exponentialRampToValueAtTime(0.005, now + 0.34);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            }
+        }
+
+        const sound = new SoundEngine();
+
+        // --- 2. DEFINICIÓN DE LOS 3 VEHÍCULOS CARTON CAKE ---
+        const CAR_TYPES = {
+            classic: {
+                name: 'Cartón Clásico',
+                maxLives: 3,
+                speedMult: 1.0,
+                jumpCooldownTime: 2.3,
+                pickupRadius: 42,
+                boxColor: '#C89B6E',
+                boxDark: '#8F6339',
+                frostingColor: '#FF6B9D',
+                sprinkleColors: ['#FFE66D', '#4ECDC4', '#FFFFFF']
+            },
+            cupcake: {
+                name: 'Cupcake Turbo',
+                maxLives: 3,
+                speedMult: 1.18,
+                jumpCooldownTime: 1.65,
+                pickupRadius: 44,
+                boxColor: '#D9A773',
+                boxDark: '#9A6B3E',
+                frostingColor: '#A855F7',
+                sprinkleColors: ['#0AC18E', '#FDE047', '#FB7185']
+            },
+            truck: {
+                name: 'Camioneta Cake',
+                maxLives: 4,
+                speedMult: 0.94,
+                jumpCooldownTime: 2.5,
+                pickupRadius: 56,
+                boxColor: '#B88655',
+                boxDark: '#7C532B',
+                frostingColor: '#38BDF8',
+                sprinkleColors: ['#F43F5E', '#FACC15', '#FFFFFF']
+            }
+        };
+
+        // --- 3. ELEMENTOS DEL DOM ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const hudBch = document.getElementById('hud-bch');
+        const hudScore = document.getElementById('hud-score');
+        const hudBest = document.getElementById('hud-best');
+        const hudCombo = document.getElementById('hud-combo');
+        const hudLives = document.getElementById('hud-lives');
+        const hudLevel = document.getElementById('hud-level');
+        const hudSpeed = document.getElementById('hud-speed');
+        const hudJumpBar = document.getElementById('hud-jump-bar');
+        const badgeMagnet = document.getElementById('badge-magnet');
+        const magnetTimerText = document.getElementById('magnet-timer');
+        const badgeShield = document.getElementById('badge-shield');
+
+        const startModal = document.getElementById('start-modal');
+        const pauseModal = document.getElementById('pause-modal');
+        const gameoverModal = document.getElementById('gameover-modal');
+
+        // --- 4. VARIABLES DE ESTADO DEL JUEGO ---
+        let selectedCarKey = 'classic';
+        let gameState = 'MENU'; // MENU, PLAYING, PAUSED, GAMEOVER
+        let lastTime = 0;
+
+        let highScore = parseInt(localStorage.getItem('cartonCakeBchBest') || '0', 10);
+        hudBest.textContent = highScore.toLocaleString();
+
+        // Dimensiones lógicas del canvas
+        let cw = 480;
+        let ch = 800;
+        let roadLeft = 56;
+        let roadRight = 424;
+        let roadWidth = 368;
+        let laneCount = 4;
+
+        // Estado de la partida
+        let score = 0;
+        let bchCollected = 0;
+        let comboStreak = 0;
+        let comboMultiplier = 1;
+        let maxComboReached = 1;
+        let totalJumpsOver = 0;
+        let gameSpeed = 290; // Píxeles por segundo
+        let level = 1;
+        let distanceTraveled = 0;
+        let roadOffset = 0;
+        let screenShake = 0;
+        let lastCrashReason = 'Chocaste contra demasiados obstáculos en la vía';
+
+        // Jugador (Carro Carton Cake)
+        const player = {
+            x: 240,
+            y: 620,
+            width: 56,
+            height: 92,
+            vx: 0,
+            vy: 0,
+            tilt: 0,
+            lives: 3,
+            maxLives: 3,
+            invulnerableTimer: 0,
+            shieldActive: false,
+            magnetTimer: 0,
+            // Salto / Turbo
+            isJumping: false,
+            jumpTimer: 0,
+            jumpDuration: 0.68,
+            jumpCooldown: 0,
+            maxJumpCooldown: 2.2
+        };
+
+        // Entidades del mundo
+        let coins = [];
+        let obstacles = [];
+        let powerups = [];
+        let particles = [];
+        let floatingTexts = [];
+        let roadsideProps = [];
+
+        // Temporizadores de generación (spawners)
+        let coinSpawnTimer = 0;
+        let obstacleSpawnTimer = 0;
+        let powerupSpawnTimer = 4;
+
+        // Controles de entrada
+        const keys = {
+            left: false,
+            right: false,
+            up: false,
+            down: false
+        };
+        let pointerActive = false;
+        let pointerTargetX = null;
+
+        // --- 5. FUNCIÓN PARA DIBUJAR EL CARRO DE CARTÓN Y PASTEL (USADA EN JUEGO Y EN PREVIEW) ---
+        function drawCartonCakeCar(context, x, y, w, h, carKey, options = {}) {
+            const cfg = CAR_TYPES[carKey] || CAR_TYPES.classic;
+            const tilt = options.tilt || 0;
+            const jumpScale = options.jumpScale || 1;
+            const time = options.time || 0;
+            const isHurt = options.isHurt || false;
+            const shield = options.shield || false;
+
+            context.save();
+            context.translate(x, y);
+
+            // Sombra en el asfalto (se separa y encoge cuando el carro salta)
+            const shadowOffset = (jumpScale - 1) * 55;
+            context.save();
+            context.translate(shadowOffset * 0.4, shadowOffset);
+            context.scale(1 / jumpScale, 1 / jumpScale);
+            context.fillStyle = 'rgba(0, 0, 0, 0.42)';
+            context.beginPath();
+            context.roundRect(-w * 0.52, -h * 0.46, w * 1.04, h * 0.96, 14);
+            context.fill();
+            context.restore();
+
+            // Escala de salto e inclinación al girar
+            context.scale(jumpScale, jumpScale);
+            context.rotate(tilt);
+
+            if (isHurt && Math.floor(time * 16) % 2 === 0) {
+                context.globalAlpha = 0.45;
+            }
+
+            // 1. Ruedas (Tapas de botella / galletas Oreo con dibujo)
+            const wheelW = 10;
+            const wheelH = 22;
+            const wheelPositions = [
+                [-w * 0.56, -h * 0.3],
+                [w * 0.56 - wheelW, -h * 0.3],
+                [-w * 0.56, h * 0.14],
+                [w * 0.56 - wheelW, h * 0.14]
+            ];
+            wheelPositions.forEach(([wx, wy]) => {
+                context.fillStyle = '#1e293b';
+                context.beginPath();
+                context.roundRect(wx, wy, wheelW, wheelH, 4);
+                context.fill();
+                context.strokeStyle = '#64748b';
+                context.lineWidth = 1.5;
+                context.stroke();
             });
-            
-            updateButton();
-        } catch (e) { 
-            console.warn("Error en cotización:", e);
-            out.value = "Calculando...";
+
+            // 2. Tubos de escape de rollo de cartón
+            context.fillStyle = '#78512a';
+            context.fillRect(-14, h * 0.45, 8, 9);
+            context.fillRect(6, h * 0.45, 8, 9);
+
+            // 3. Chasis principal de Cartón Corrugado
+            context.fillStyle = cfg.boxColor;
+            context.strokeStyle = '#5c3a18';
+            context.lineWidth = 3;
+
+            const radius = carKey === 'cupcake' ? 22 : (carKey === 'truck' ? 8 : 13);
+            context.beginPath();
+            context.roundRect(-w / 2, -h / 2, w, h, radius);
+            context.fill();
+            context.stroke();
+
+            // Líneas de textura de cartón y solapas dobladas
+            context.strokeStyle = cfg.boxDark;
+            context.lineWidth = 1.5;
+            context.beginPath();
+            context.moveTo(-w * 0.42, -h * 0.32);
+            context.lineTo(w * 0.42, -h * 0.32);
+            context.moveTo(-w * 0.42, h * 0.34);
+            context.lineTo(w * 0.42, h * 0.34);
+            context.stroke();
+
+            // Cinta adhesiva (Duct tape) pegada en las esquinas
+            context.fillStyle = 'rgba(245, 228, 195, 0.78)';
+            context.save();
+            context.translate(-w * 0.28, -h * 0.35);
+            context.rotate(-0.35);
+            context.fillRect(-9, -3.5, 18, 7);
+            context.restore();
+
+            context.save();
+            context.translate(w * 0.28, h * 0.35);
+            context.rotate(0.32);
+            context.fillRect(-9, -3.5, 18, 7);
+            context.restore();
+
+            // 4. Faros delanteros expresivos
+            context.fillStyle = '#FEF08A';
+            context.beginPath();
+            context.arc(-w * 0.3, -h * 0.46, 5.5, 0, Math.PI * 2);
+            context.arc(w * 0.3, -h * 0.46, 5.5, 0, Math.PI * 2);
+            context.fill();
+            context.strokeStyle = '#CA8A04';
+            context.lineWidth = 1.5;
+            context.stroke();
+
+            // Parabrisas estilo cartoon con ojos atentos
+            context.fillStyle = '#1E293B';
+            context.beginPath();
+            context.roundRect(-w * 0.38, -h * 0.27, w * 0.76, h * 0.2, 6);
+            context.fill();
+
+            // Pupilas mirando hacia la dirección de giro
+            const eyeShift = tilt * 8;
+            context.fillStyle = '#FFFFFF';
+            context.beginPath();
+            context.arc(-9 + eyeShift, -h * 0.17, 4.5, 0, Math.PI * 2);
+            context.arc(9 + eyeShift, -h * 0.17, 4.5, 0, Math.PI * 2);
+            context.fill();
+
+            context.fillStyle = '#0AC18E';
+            context.beginPath();
+            context.arc(-9 + eyeShift * 1.4, -h * 0.17, 2.2, 0, Math.PI * 2);
+            context.arc(9 + eyeShift * 1.4, -h * 0.17, 2.2, 0, Math.PI * 2);
+            context.fill();
+
+            // 5. Techo de Pastel / Glaseado (Cake Frosting)
+            context.fillStyle = cfg.frostingColor;
+            context.strokeStyle = '#ffffff';
+            context.lineWidth = 2;
+            context.beginPath();
+            context.roundRect(-w * 0.38, -h * 0.04, w * 0.76, h * 0.35, 12);
+            context.fill();
+            context.stroke();
+
+            // Ondas de crema batida alrededor del pastel
+            context.fillStyle = '#FFF1F2';
+            for (let i = -2; i <= 2; i++) {
+                context.beginPath();
+                context.arc(i * (w * 0.15), -h * 0.03, 5, 0, Math.PI * 2);
+                context.arc(i * (w * 0.15), h * 0.30, 5, 0, Math.PI * 2);
+                context.fill();
+            }
+
+            // Chispas de colores (Sprinkles)
+            const sprinkleCoords = [
+                [-10, 6, 0.4], [8, 4, -0.5], [-6, 18, 0.8],
+                [10, 17, -0.3], [0, 11, 0.1], [-12, 13, -0.6]
+            ];
+            sprinkleCoords.forEach(([sx, sy, rot], idx) => {
+                context.save();
+                context.translate(sx, sy);
+                context.rotate(rot);
+                context.fillStyle = cfg.sprinkleColors[idx % cfg.sprinkleColors.length];
+                context.beginPath();
+                context.roundRect(-3.5, -1.5, 7, 3, 1.5);
+                context.fill();
+                context.restore();
+            });
+
+            // Cereza brillante en la cima del pastel
+            context.fillStyle = '#E11D48';
+            context.beginPath();
+            context.arc(0, h * 0.13, 6.5, 0, Math.PI * 2);
+            context.fill();
+            context.fillStyle = '#FDA4AF';
+            context.beginPath();
+            context.arc(-2, h * 0.11, 2, 0, Math.PI * 2);
+            context.fill();
+
+            // Alerón trasero de cartón con logo BCH
+            context.fillStyle = cfg.boxDark;
+            context.strokeStyle = '#472b10';
+            context.lineWidth = 2;
+            context.beginPath();
+            context.roundRect(-w * 0.46, h * 0.36, w * 0.92, 9, 3);
+            context.fill();
+            context.stroke();
+
+            // Burbuja de escudo si tiene Pastel Escudo activo
+            if (shield) {
+                context.strokeStyle = '#22D3EE';
+                context.fillStyle = 'rgba(34, 211, 238, 0.18)';
+                context.lineWidth = 3;
+                context.beginPath();
+                context.arc(0, 0, Math.max(w, h) * 0.66, 0, Math.PI * 2);
+                context.fill();
+                context.stroke();
+            }
+
+            context.restore();
         }
-    }
-</script>
+
+        // Renderizar vistas previas en las tarjetas del menú de inicio
+        function renderMenuCarPreviews() {
+            ['classic', 'cupcake', 'truck'].forEach(key => {
+                const pCanvas = document.getElementById(`preview-${key}`);
+                if (!pCanvas) return;
+                const pCtx = pCanvas.getContext('2d');
+                pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+                const w = key === 'truck' ? 46 : 42;
+                const h = key === 'cupcake' ? 64 : 68;
+                drawCartonCakeCar(pCtx, pCanvas.width / 2, pCanvas.height / 2 + 2, w, h, key, {
+                    tilt: -0.06,
+                    jumpScale: 1
+                });
+            });
+        }
+
+        // --- 6. DIBUJO DETALLADO DE MONEDAS BCH, PASTELITOS Y OBSTÁCULOS ---
+
+        // Moneda Bitcoin Cash (BCH)
+        function drawBCHCoin(context, coin) {
+            context.save();
+            context.translate(coin.x, coin.y);
+
+            // Sombra inferior
+            context.fillStyle = 'rgba(0,0,0,0.3)';
+            context.beginPath();
+            context.ellipse(0, coin.r + 5, coin.r * 0.8, coin.r * 0.32, 0, 0, Math.PI * 2);
+            context.fill();
+
+            // Efecto de giro 3D horizontal suave
+            const spinScale = 0.78 + Math.sin(coin.phase) * 0.22;
+            context.scale(spinScale, 1);
+
+            // Resplandor verde BCH
+            context.shadowColor = '#0AC18E';
+            context.shadowBlur = coin.isMega ? 16 : 10;
+
+            // Círculo exterior
+            context.fillStyle = coin.isMega ? '#10F5B6' : '#0AC18E';
+            context.strokeStyle = '#FFFFFF';
+            context.lineWidth = 2.5;
+            context.beginPath();
+            context.arc(0, 0, coin.r, 0, Math.PI * 2);
+            context.fill();
+            context.stroke();
+
+            context.shadowBlur = 0;
+
+            // Anillo interior
+            context.strokeStyle = '#056B4E';
+            context.lineWidth = 1.8;
+            context.beginPath();
+            context.arc(0, 0, coin.r * 0.76, 0, Math.PI * 2);
+            context.stroke();
+
+            // Símbolo ₿ inclinado característico de Bitcoin Cash
+            context.rotate(-0.22);
+            context.fillStyle = '#FFFFFF';
+            context.font = `900 ${Math.round(coin.r * 1.15)}px Inter, sans-serif`;
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText('₿', 0, 1);
+
+            context.restore();
+        }
+
+        // Pastelitos Especiales (Carton Cakes Power-ups)
+        function drawPowerupCake(context, p) {
+            context.save();
+            context.translate(p.x, p.y + Math.sin(p.phase) * 3);
+
+            // Aura brillante según tipo
+            const auraColor = p.type === 'magnet' ? '#E879F9' : (p.type === 'shield' ? '#38BDF8' : '#F43F5E');
+            context.fillStyle = 'rgba(0,0,0,0.35)';
+            context.beginPath();
+            context.ellipse(0, 22, 18, 6, 0, 0, Math.PI * 2);
+            context.fill();
+
+            context.strokeStyle = auraColor;
+            context.lineWidth = 2.5;
+            context.beginPath();
+            context.arc(0, 0, 22 + Math.sin(p.phase * 2) * 2, 0, Math.PI * 2);
+            context.stroke();
+
+            // Base de vasito de cartón
+            context.fillStyle = '#C89B6E';
+            context.strokeStyle = '#5C3A18';
+            context.lineWidth = 2;
+            context.beginPath();
+            context.moveTo(-13, 2);
+            context.lineTo(-9, 16);
+            context.lineTo(9, 16);
+            context.lineTo(13, 2);
+            context.closePath();
+            context.fill();
+            context.stroke();
+
+            // Glaseado superior
+            context.fillStyle = auraColor;
+            context.beginPath();
+            context.arc(0, -1, 14, Math.PI, 0, false);
+            context.arc(8, 1, 6, 0, Math.PI, false);
+            context.arc(0, 2, 6, 0, Math.PI, false);
+            context.arc(-8, 1, 6, 0, Math.PI, false);
+            context.closePath();
+            context.fill();
+            context.stroke();
+
+            // Icono indicador encima
+            context.font = '14px sans-serif';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            const icon = p.type === 'magnet' ? '🧲' : (p.type === 'shield' ? '🛡️' : '❤️');
+            context.fillText(icon, 0, -4);
+
+            context.restore();
+        }
+
+        // Obstáculos: 1. Zapatos viejos, 2. Basura, 3. Piedras
+        function drawObstacle(context, obs) {
+            context.save();
+            context.translate(obs.x, obs.y);
+
+            // Sombra en el suelo
+            context.fillStyle = 'rgba(0, 0, 0, 0.42)';
+            context.beginPath();
+            context.ellipse(0, obs.r * 0.72, obs.r * 0.95, obs.r * 0.42, 0, 0, Math.PI * 2);
+            context.fill();
+
+            if (obs.kind === 'shoe') {
+                // --- 1. ZAPATO VIEJO / BOTA TIRADA EN LA VÍA ---
+                context.rotate(obs.rot);
+
+                // Suela gastada
+                context.fillStyle = '#E2E8F0';
+                context.strokeStyle = '#334155';
+                context.lineWidth = 2.5;
+                context.beginPath();
+                context.roundRect(-22, 6, 44, 11, 5);
+                context.fill();
+                context.stroke();
+
+                // Cuerpo de la bota / tenis viejo
+                context.fillStyle = obs.color || '#7C2D12';
+                context.beginPath();
+                context.moveTo(-20, 7);
+                context.lineTo(-18, -16);
+                context.lineTo(0, -16);
+                context.lineTo(6, -3);
+                context.lineTo(21, 0);
+                context. quadraticCurveTo(24, 7, 19, 7);
+                context.closePath();
+                context.fill();
+                context.stroke();
+
+                // Puntera sucia y agujetas/cordones desatados
+                context.fillStyle = '#CBD5E1';
+                context.beginPath();
+                context.arc(16, 3, 6, -Math.PI * 0.6, Math.PI * 0.3);
+                context.fill();
+
+                context.strokeStyle = '#FDE047';
+                context.lineWidth = 2;
+                context.beginPath();
+                context.moveTo(-4, -10);
+                context.lineTo(4, -7);
+                context.moveTo(-2, -5);
+                context.lineTo(6, -2);
+                context.stroke();
+
+                // Líneas de mal olor cómicas del zapato viejo
+                context.strokeStyle = 'rgba(163, 230, 53, 0.75)';
+                context.lineWidth = 1.8;
+                const wave = Math.sin(obs.phase * 3) * 3;
+                context.beginPath();
+                context.moveTo(-8, -20);
+                context.quadraticCurveTo(-12 + wave, -27, -6, -33);
+                context.moveTo(4, -18);
+                context.quadraticCurveTo(8 - wave, -25, 3, -31);
+                context.stroke();
+
+            } else if (obs.kind === 'trash') {
+                // --- 2. BASURA (BOLSA DE BASURA ROTA + CÁSCARA / LATA) ---
+                // Bolsa negra abultada
+                context.fillStyle = '#1F2937';
+                context.strokeStyle = '#0F172A';
+                context.lineWidth = 2.5;
+                context.beginPath();
+                context.arc(0, 2, obs.r * 0.78, 0, Math.PI * 2);
+                context.fill();
+                context.stroke();
+
+                // Nudo superior de la bolsa y cinta amarilla
+                context.fillStyle = '#374151';
+                context.beginPath();
+                context.moveTo(-6, -obs.r * 0.65);
+                context.lineTo(-12, -obs.r * 0.98);
+                context.lineTo(0, -obs.r * 0.85);
+                context.lineTo(12, -obs.r * 0.98);
+                context.lineTo(6, -obs.r * 0.65);
+                context.closePath();
+                context.fill();
+                context.stroke();
+
+                context.strokeStyle = '#EF4444';
+                context.lineWidth = 3;
+                context.beginPath();
+                context.moveTo(-7, -obs.r * 0.64);
+                context.lineTo(7, -obs.r * 0.64);
+                context.stroke();
+
+                // Brillo plástico y cáscara de plátano / lata saliendo
+                context.strokeStyle = '#6B7280';
+                context.lineWidth = 2;
+                context.beginPath();
+                context.arc(-6, -2, 8, Math.PI * 0.8, Math.PI * 1.4);
+                context.stroke();
+
+                // Cáscara de banana amarilla al lado
+                context.fillStyle = '#FACC15';
+                context.strokeStyle = '#854D0E';
+                context.lineWidth = 1.5;
+                context.beginPath();
+                context.ellipse(14, 10, 9, 4, 0.5, 0, Math.PI * 2);
+                context.fill();
+                context.stroke();
+
+            } else {
+                // --- 3. PIEDRA AGRIETADA EN EL ASFALTO ---
+                context.fillStyle = '#64748B';
+                context.strokeStyle = '#1E293B';
+                context.lineWidth = 2.8;
+
+                context.beginPath();
+                obs.vertices.forEach((v, i) => {
+                    if (i === 0) context.moveTo(v.x, v.y);
+                    else context.lineTo(v.x, v.y);
+                });
+                context.closePath();
+                context.fill();
+                context.stroke();
+
+                // Sombras internas y grietas de la roca
+                context.fillStyle = '#94A3B8';
+                context.beginPath();
+                context.arc(-obs.r * 0.22, -obs.r * 0.22, obs.r * 0.35, 0, Math.PI * 2);
+                context.fill();
+
+                context.strokeStyle = '#334155';
+                context.lineWidth = 2;
+                context.beginPath();
+                context.moveTo(-6, -8);
+                context.lineTo(2, 1);
+                context.lineTo(10, -3);
+                context.moveTo(2, 1);
+                context.lineTo(-3, 11);
+                context.stroke();
+            }
+
+            context.restore();
+        }
+
+        // --- 7. GESTIÓN DEL CANVAS Y ESCENARIO ---
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            cw = 480;
+            ch = Math.max(680, Math.min(920, Math.round((rect.height / rect.width) * cw)));
+            canvas.width = cw;
+            canvas.height = ch;
+
+            roadLeft = 58;
+            roadRight = cw - 58;
+            roadWidth = roadRight - roadLeft;
+            player.y = Math.min(player.y, ch - 135);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Inicializar elementos decorativos a los lados de la vía
+        function initRoadsideProps() {
+            roadsideProps = [];
+            for (let i = 0; i < 8; i++) {
+                roadsideProps.push({
+                    side: i % 2 === 0 ? 'left' : 'right',
+                    y: (ch / 8) * i,
+                    type: i % 3 === 0 ? 'sign' : 'bush'
+                });
+            }
+        }
+
+        // --- 8. LÓGICA DE INICIO Y REINICIO DE PARTIDA ---
+        function updateLivesHUD() {
+            hudLives.innerHTML = '';
+            for (let i = 0; i < player.maxLives; i++) {
+                const span = document.createElement('span');
+                span.className = 'text-base sm:text-lg leading-none transition-transform';
+                span.textContent = i < player.lives ? '🧁' : '🖤';
+                hudLives.appendChild(span);
+            }
+        }
+
+        function startGame() {
+            sound.init();
+            const cfg = CAR_TYPES[selectedCarKey];
+
+            score = 0;
+            bchCollected = 0;
+            comboStreak = 0;
+            comboMultiplier = 1;
+            maxComboReached = 1;
+            totalJumpsOver = 0;
+            level = 1;
+            gameSpeed = 300;
+            distanceTraveled = 0;
+            screenShake = 0;
+
+            player.x = cw / 2;
+            player.y = ch - 145;
+            player.width = selectedCarKey === 'truck' ? 60 : 54;
+            player.height = selectedCarKey === 'cupcake' ? 84 : 92;
+            player.vx = 0;
+            player.vy = 0;
+            player.tilt = 0;
+            player.maxLives = cfg.maxLives;
+            player.lives = cfg.maxLives;
+            player.invulnerableTimer = 0;
+            player.shieldActive = false;
+            player.magnetTimer = 0;
+            player.isJumping = false;
+            player.jumpTimer = 0;
+            player.jumpCooldown = 0;
+            player.maxJumpCooldown = cfg.jumpCooldownTime;
+
+            coins = [];
+            obstacles = [];
+            powerups = [];
+            particles = [];
+            floatingTexts = [];
+            initRoadsideProps();
+
+            coinSpawnTimer = 0.3;
+            obstacleSpawnTimer = 0.9;
+            powerupSpawnTimer = 7.0;
+
+            updateLivesHUD();
+            updateHUD();
+
+            startModal.classList.add('hidden');
+            pauseModal.classList.add('hidden');
+            gameoverModal.classList.add('hidden');
+
+            gameState = 'PLAYING';
+            lastTime = performance.now();
+        }
+
+        function triggerJump() {
+            if (gameState !== 'PLAYING') return;
+            if (!player.isJumping && player.jumpCooldown <= 0) {
+                player.isJumping = true;
+                player.jumpTimer = player.jumpDuration;
+                player.jumpCooldown = player.maxJumpCooldown;
+                sound.playJump();
+                addFloatingText(player.x, player.y - 35, '¡TURBO SALTO!', '#FF85B3');
+
+                // Partículas de impulso de glaseado y cartón
+                for (let i = 0; i < 14; i++) {
+                    particles.push({
+                        x: player.x + (Math.random() - 0.5) * 34,
+                        y: player.y + 38,
+                        vx: (Math.random() - 0.5) * 120,
+                        vy: 120 + Math.random() * 140,
+                        r: 4 + Math.random() * 5,
+                        color: i % 2 === 0 ? '#0AC18E' : '#FF6B9D',
+                        life: 0.45,
+                        maxLife: 0.45
+                    });
+                }
+            }
+        }
+
+        function addFloatingText(x, y, text, color = '#0AC18E', scale = 1) {
+            floatingTexts.push({
+                x,
+                y,
+                text,
+                color,
+                scale,
+                life: 0.9,
+                maxLife: 0.9
+            });
+        }
+
+        function spawnParticles(x, y, color, count = 12) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const spd = 50 + Math.random() * 170;
+                particles.push({
+                    x,
+                    y,
+                    vx: Math.cos(angle) * spd,
+                    vy: Math.sin(angle) * spd,
+                    r: 3 + Math.random() * 4.5,
+                    color,
+                    life: 0.4 + Math.random() * 0.25,
+                    maxLife: 0.65
+                });
+            }
+        }
+
+        // --- 9. GENERADORES DE MONEDAS BCH, OBSTÁCULOS Y PASTELITOS ---
+        function getLaneCenterX(laneIndex) {
+            const laneW = roadWidth / laneCount;
+            return roadLeft + laneW * laneIndex + laneW / 2;
+        }
+
+        function spawnCoinGroup() {
+            const lane = Math.floor(Math.random() * laneCount);
+            const pattern = Math.random();
+            const isMega = Math.random() < 0.08;
+
+            if (isMega) {
+                coins.push({
+                    x: getLaneCenterX(lane),
+                    y: -40,
+                    r: 22,
+                    value: 1.0,
+                    isMega: true,
+                    phase: Math.random() * Math.PI * 2
+                });
+                return;
+            }
+
+            const count = pattern < 0.55 ? 4 : 3;
+            for (let i = 0; i < count; i++) {
+                const targetLane = pattern > 0.78 ? Math.min(laneCount - 1, Math.max(0, lane + (i % 2 === 0 ? 0 : 1))) : lane;
+                coins.push({
+                    x: getLaneCenterX(targetLane),
+                    y: -35 - i * 54,
+                    r: 16,
+                    value: 0.25,
+                    isMega: false,
+                    phase: i * 0.5
+                });
+            }
+        }
+
+        function spawnObstacle() {
+            const lane = Math.floor(Math.random() * laneCount);
+            const x = getLaneCenterX(lane) + (Math.random() - 0.5) * 16;
+
+            // Evitar superposición directa con otro obstáculo recién creado
+            const tooClose = obstacles.some(o => o.y < 90 && Math.abs(o.x - x) < 65);
+            if (tooClose) return;
+
+            const roll = Math.random();
+            let kind = 'shoe';
+            if (roll > 0.34 && roll <= 0.68) kind = 'trash';
+            else if (roll > 0.68) kind = 'rock';
+
+            const r = kind === 'rock' ? 25 : (kind === 'trash' ? 24 : 22);
+            const vertices = [];
+            if (kind === 'rock') {
+                const steps = 8;
+                for (let i = 0; i < steps; i++) {
+                    const ang = (Math.PI * 2 * i) / steps;
+                    const rad = r * (0.78 + Math.random() * 0.28);
+                    vertices.push({ x: Math.cos(ang) * rad, y: Math.sin(ang) * rad });
+                }
+            }
+
+            const shoeColors = ['#7C2D12', '#1D4ED8', '#4D7C0F', '#9D174D'];
+            obstacles.push({
+                x,
+                y: -50,
+                r,
+                kind,
+                rot: (Math.random() - 0.5) * 0.5,
+                phase: Math.random() * 5,
+                color: shoeColors[Math.floor(Math.random() * shoeColors.length)],
+                vertices,
+                jumpedCounted: false
+            });
+        }
+
+        function spawnCakePowerup() {
+            const lane = Math.floor(Math.random() * laneCount);
+            const types = ['magnet', 'shield', 'life'];
+            const type = player.lives < player.maxLives && Math.random() < 0.4
+                ? 'life'
+                : types[Math.floor(Math.random() * 2)];
+
+            powerups.push({
+                x: getLaneCenterX(lane),
+                y: -40,
+                r: 20,
+                type,
+                phase: 0
+            });
+        }
+
+        // --- 10. ACTUALIZACIÓN DEL JUEGO (FÍSICAS, COLISIONES, COMBOS) ---
+        function updateHUD() {
+            hudBch.textContent = bchCollected.toFixed(2);
+            hudScore.textContent = Math.floor(score).toLocaleString();
+            hudLevel.textContent = level;
+            hudSpeed.textContent = `${Math.round((gameSpeed / 3.2))} KM/H`;
+
+            if (comboMultiplier > 1) {
+                hudCombo.textContent = `x${comboMultiplier}`;
+                hudCombo.classList.remove('hidden');
+            } else {
+                hudCombo.classList.add('hidden');
+            }
+
+            if (player.magnetTimer > 0) {
+                badgeMagnet.classList.remove('hidden');
+                badgeMagnet.classList.add('flex');
+                magnetTimerText.textContent = `${Math.ceil(player.magnetTimer)}s`;
+            } else {
+                badgeMagnet.classList.add('hidden');
+                badgeMagnet.classList.remove('flex');
+            }
+
+            if (player.shieldActive) {
+                badgeShield.classList.remove('hidden');
+                badgeShield.classList.add('flex');
+            } else {
+                badgeShield.classList.add('hidden');
+                badgeShield.classList.remove('flex');
+            }
+
+            const jumpReadyRatio = player.jumpCooldown <= 0
+                ? 1
+                : 1 - (player.jumpCooldown / player.maxJumpCooldown);
+            hudJumpBar.style.width = `${Math.max(0, Math.min(100, jumpReadyRatio * 100))}%`;
+        }
+
+        function updateGame(dt) {
+            const cfg = CAR_TYPES[selectedCarKey];
+
+            // Progresión de velocidad y nivel
+            distanceTraveled += gameSpeed * dt;
+            level = 1 + Math.floor(distanceTraveled / 3600);
+            const targetBaseSpeed = 300 + (level - 1) * 32;
+            const jumpBoost = player.isJumping ? 115 : 0;
+            gameSpeed = targetBaseSpeed + jumpBoost;
+
+            score += (gameSpeed * dt) * 0.08 * comboMultiplier;
+            roadOffset = (roadOffset + gameSpeed * dt) % 80;
+
+            if (screenShake > 0) {
+                screenShake = Math.max(0, screenShake - dt * 28);
+            }
+
+            // Temporizadores del jugador
+            if (player.invulnerableTimer > 0) player.invulnerableTimer -= dt;
+            if (player.magnetTimer > 0) player.magnetTimer -= dt;
+            if (player.jumpCooldown > 0) player.jumpCooldown -= dt;
+
+            if (player.isJumping) {
+                player.jumpTimer -= dt;
+                if (player.jumpTimer <= 0) {
+                    player.isJumping = false;
+                }
+            }
+
+            // Movimiento horizontal y vertical del carro
+            const moveSpeed = 370 * cfg.speedMult;
+            let moveX = 0;
+            let moveY = 0;
+
+            if (keys.left) moveX -= 1;
+            if (keys.right) moveX += 1;
+            if (keys.up) moveY -= 1;
+            if (keys.down) moveY += 1;
+
+            if (pointerActive && pointerTargetX !== null) {
+                const diffX = pointerTargetX - player.x;
+                if (Math.abs(diffX) > 4) {
+                    moveX = Math.max(-1.25, Math.min(1.25, diffX / 48));
+                }
+            }
+
+            player.vx = moveX * moveSpeed;
+            player.vy = moveY * (moveSpeed * 0.75);
+
+            player.x += player.vx * dt;
+            player.y += player.vy * dt;
+
+            // Límites dentro de los carriles de la carretera
+            const minX = roadLeft + player.width * 0.56;
+            const maxX = roadRight - player.width * 0.56;
+            player.x = Math.max(minX, Math.min(maxX, player.x));
+            player.y = Math.max(ch * 0.35, Math.min(ch - 125, player.y));
+
+            // Inclinación suave del auto al girar
+            const targetTilt = (player.vx / moveSpeed) * 0.22;
+            player.tilt += (targetTilt - player.tilt) * Math.min(1, dt * 14);
+
+            // Humo de escape (partículas suaves)
+            if (Math.random() < 0.45) {
+                particles.push({
+                    x: player.x + (Math.random() - 0.5) * 16,
+                    y: player.y + player.height * 0.48,
+                    vx: (Math.random() - 0.5) * 24,
+                    vy: 70 + Math.random() * 40,
+                    r: 3 + Math.random() * 3,
+                    color: player.isJumping ? '#0AC18E' : 'rgba(226, 232, 240, 0.5)',
+                    life: 0.28,
+                    maxLife: 0.28
+                });
+            }
+
+            // Actualizar decoración lateral
+            roadsideProps.forEach(prop => {
+                prop.y += gameSpeed * dt;
+                if (prop.y > ch + 60) {
+                    prop.y = -50;
+                }
+            });
+
+            // Generadores (Spawners)
+            coinSpawnTimer -= dt;
+            if (coinSpawnTimer <= 0) {
+                spawnCoinGroup();
+                coinSpawnTimer = Math.max(0.75, 1.45 - level * 0.06);
+            }
+
+            obstacleSpawnTimer -= dt;
+            if (obstacleSpawnTimer <= 0) {
+                spawnObstacle();
+                obstacleSpawnTimer = Math.max(0.42, 1.08 - level * 0.065);
+            }
+
+            powerupSpawnTimer -= dt;
+            if (powerupSpawnTimer <= 0) {
+                spawnCakePowerup();
+                powerupSpawnTimer = 9 + Math.random() * 5;
+            }
+
+            // Actualizar y recolectar Monedas BCH
+            const pickupRange = cfg.pickupRadius;
+            for (let i = coins.length - 1; i >= 0; i--) {
+                const c = coins[i];
+                c.y += gameSpeed * dt;
+                c.phase += dt * 6;
+
+                // Efecto Imán de Pastelito
+                const dx = player.x - c.x;
+                const dy = player.y - c.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (player.magnetTimer > 0 && dist < 230) {
+                    c.x += (dx / dist) * 440 * dt;
+                    c.y += (dy / dist) * 440 * dt;
+                }
+
+                if (dist < pickupRange + c.r * 0.6) {
+                    comboStreak++;
+                    if (comboStreak >= 15) comboMultiplier = 5;
+                    else if (comboStreak >= 8) comboMultiplier = 3;
+                    else if (comboStreak >= 4) comboMultiplier = 2;
+                    else comboMultiplier = 1;
+
+                    if (comboMultiplier > maxComboReached) {
+                        maxComboReached = comboMultiplier;
+                    }
+
+                    const gainedBch = c.value * comboMultiplier;
+                    bchCollected += gainedBch;
+                    score += (c.isMega ? 250 : 75) * comboMultiplier;
+
+                    sound.playBCH(comboStreak);
+                    spawnParticles(c.x, c.y, '#0AC18E', c.isMega ? 18 : 10);
+                    addFloatingText(
+                        c.x,
+                        c.y - 10,
+                        `+${gainedBch.toFixed(2)} BCH${comboMultiplier > 1 ? ` (x${comboMultiplier})` : ''}`,
+                        c.isMega ? '#FDE047' : '#10F5B6'
+                    );
+
+                    coins.splice(i, 1);
+                    continue;
+                }
+
+                if (c.y > ch + 50) {
+                    coins.splice(i, 1);
+                }
+            }
+
+            // Actualizar y recolectar Pastelitos Power-up
+            for (let i = powerups.length - 1; i >= 0; i--) {
+                const p = powerups[i];
+                p.y += gameSpeed * dt;
+                p.phase += dt * 5;
+
+                const dist = Math.hypot(player.x - p.x, player.y - p.y);
+                if (dist < pickupRange + p.r * 0.5) {
+                    sound.playCakePowerup();
+                    spawnParticles(p.x, p.y, '#FF6B9D', 18);
+
+                    if (p.type === 'magnet') {
+                        player.magnetTimer = 8.5;
+                        addFloatingText(p.x, p.y, '🧁 ¡IMÁN BCH ACTIVO!', '#E879F9');
+                    } else if (p.type === 'shield') {
+                        player.shieldActive = true;
+                        addFloatingText(p.x, p.y, '🧁 ¡ESCUDO GLASEADO!', '#38BDF8');
+                    } else {
+                        if (player.lives < player.maxLives) {
+                            player.lives++;
+                            updateLivesHUD();
+                            addFloatingText(p.x, p.y, '🧁 +1 VIDA CARTÓN', '#FB7185');
+                        } else {
+                            score += 300;
+                            addFloatingText(p.x, p.y, '🧁 +300 PTS EXTRA', '#FDE047');
+                        }
+                    }
+
+                    powerups.splice(i, 1);
+                    continue;
+                }
+
+                if (p.y > ch + 50) {
+                    powerups.splice(i, 1);
+                }
+            }
+
+            // Actualizar Obstáculos (Zapatos, Basura, Piedras)
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const o = obstacles[i];
+                o.y += gameSpeed * dt;
+                o.phase += dt * 2;
+
+                const dx = Math.abs(player.x - o.x);
+                const dy = Math.abs(player.y - o.y);
+
+                const hitW = player.width * 0.38 + o.r * 0.68;
+                const hitH = player.height * 0.38 + o.r * 0.65;
+
+                if (dx < hitW && dy < hitH) {
+                    // Si está saltando en el aire, pasa por encima del obstáculo y gana bono
+                    if (player.isJumping) {
+                        if (!o.jumpedCounted) {
+                            o.jumpedCounted = true;
+                            totalJumpsOver++;
+                            score += 120 * comboMultiplier;
+                            addFloatingText(player.x, player.y - 25, '¡SALTO LIMPIO! +120', '#FDE047');
+                        }
+                    } else if (player.invulnerableTimer <= 0) {
+                        // Colisión real contra zapato, basura o piedra
+                        if (player.shieldActive) {
+                            player.shieldActive = false;
+                            player.invulnerableTimer = 1.0;
+                            sound.playCrash(true);
+                            screenShake = 8;
+                            spawnParticles(o.x, o.y, '#38BDF8', 18);
+                            addFloatingText(o.x, o.y, '🛡️ ¡ESCUDO SALVÓ EL GOLPE!', '#38BDF8');
+                            obstacles.splice(i, 1);
+                            continue;
+                        } else {
+                            player.lives--;
+                            player.invulnerableTimer = 1.65;
+                            comboStreak = 0;
+                            comboMultiplier = 1;
+                            screenShake = 15;
+                            sound.playCrash(false);
+                            updateLivesHUD();
+
+                            const obstacleLabel = o.kind === 'shoe'
+                                ? 'un Zapato Viejo 👟'
+                                : (o.kind === 'trash' ? 'una Bolsa de Basura 🗑️' : 'una Piedra en la vía 🪨');
+                            lastCrashReason = `Tu carro de cartón chocó contra ${obstacleLabel}`;
+
+                            spawnParticles(o.x, o.y, '#C89B6E', 22);
+                            addFloatingText(player.x, player.y - 20, '💥 ¡CRASH! -1 VIDA', '#EF4444');
+                            obstacles.splice(i, 1);
+
+                            if (player.lives <= 0) {
+                                triggerGameOver();
+                                return;
+                            }
+                            continue;
+                        }
+                    }
+                }
+
+                if (o.y > ch + 60) {
+                    obstacles.splice(i, 1);
+                }
+            }
+
+            // Actualizar partículas
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const pt = particles[i];
+                pt.x += pt.vx * dt;
+                pt.y += pt.vy * dt;
+                pt.life -= dt;
+                if (pt.life <= 0) particles.splice(i, 1);
+            }
+
+            // Actualizar textos flotantes
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                const ft = floatingTexts[i];
+                ft.y -= 52 * dt;
+                ft.life -= dt;
+                if (ft.life <= 0) floatingTexts.splice(i, 1);
+            }
+
+            updateHUD();
+        }
+
+        function triggerGameOver() {
+            gameState = 'GAMEOVER';
+            const finalScore = Math.floor(score);
+            const isNewRecord = finalScore > highScore;
+
+            if (isNewRecord) {
+                highScore = finalScore;
+                localStorage.setItem('cartonCakeBchBest', String(highScore));
+                hudBest.textContent = highScore.toLocaleString();
+                document.getElementById('new-record-badge').classList.remove('hidden');
+            } else {
+                document.getElementById('new-record-badge').classList.add('hidden');
+            }
+
+            document.getElementById('gameover-reason').textContent = lastCrashReason;
+            document.getElementById('go-bch').textContent = `${bchCollected.toFixed(2)} BCH`;
+            document.getElementById('go-score').textContent = finalScore.toLocaleString();
+            document.getElementById('go-best').textContent = highScore.toLocaleString();
+            document.getElementById('go-stats').textContent = `Combo Máx x${maxComboReached} • ${totalJumpsOver} saltos`;
+
+            gameoverModal.classList.remove('hidden');
+        }
+
+        // --- 11. RENDERIZADO PRINCIPAL DEL ESCENARIO 2D ---
+        function drawScene(now) {
+            ctx.save();
+
+            // Sacudida de cámara al chocar
+            if (screenShake > 0) {
+                const sx = (Math.random() - 0.5) * screenShake;
+                const sy = (Math.random() - 0.5) * screenShake;
+                ctx.translate(sx, sy);
+            }
+
+            // 1. Césped / Borde exterior estilo maqueta de cartón
+            ctx.fillStyle = '#15803D';
+            ctx.fillRect(0, 0, cw, ch);
+
+            // Franjas de césped en movimiento
+            ctx.fillStyle = '#166534';
+            for (let y = -80 + (roadOffset % 80); y < ch; y += 80) {
+                ctx.fillRect(0, y, roadLeft, 40);
+                ctx.fillRect(roadRight, y, cw - roadRight, 40);
+            }
+
+            // 2. Acera / Bordillo bicolor (Verde BCH y Blanco)
+            const curbW = 12;
+            for (let y = -40 + (roadOffset % 40); y < ch; y += 40) {
+                ctx.fillStyle = '#0AC18E';
+                ctx.fillRect(roadLeft - curbW, y, curbW, 20);
+                ctx.fillRect(roadRight, y, curbW, 20);
+
+                ctx.fillStyle = '#F8FAFC';
+                ctx.fillRect(roadLeft - curbW, y + 20, curbW, 20);
+                ctx.fillRect(roadRight, y + 20, curbW, 20);
+            }
+
+            // 3. Asfalto de la carretera
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(roadLeft, 0, roadWidth, ch);
+
+            // Carriles centrales punteados
+            const laneW = roadWidth / laneCount;
+            ctx.strokeStyle = 'rgba(248, 250, 252, 0.55)';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([28, 32]);
+            ctx.lineDashOffset = -roadOffset;
+
+            for (let i = 1; i < laneCount; i++) {
+                const lx = roadLeft + laneW * i;
+                ctx.beginPath();
+                ctx.moveTo(lx, 0);
+                ctx.lineTo(lx, ch);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+
+            // 4. Decoración en las aceras (Arbustos y letreros de cartón BCH)
+            roadsideProps.forEach(prop => {
+                const px = prop.side === 'left' ? roadLeft * 0.42 : roadRight + (cw - roadRight) * 0.58;
+                ctx.save();
+                ctx.translate(px, prop.y);
+                if (prop.type === 'bush') {
+                    ctx.fillStyle = '#14532D';
+                    ctx.beginPath();
+                    ctx.arc(0, 4, 15, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#22C55E';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 14, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // Letrero de cartón BCH
+                    ctx.fillStyle = '#78350F';
+                    ctx.fillRect(-3, 0, 6, 16);
+                    ctx.fillStyle = '#C89B6E';
+                    ctx.strokeStyle = '#451A03';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.roundRect(-16, -14, 32, 18, 4);
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.fillStyle = '#0AC18E';
+                    ctx.font = 'bold 9px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('₿ BCH', 0, -2);
+                }
+                ctx.restore();
+            });
+
+            // 5. Dibujar Monedas BCH
+            coins.forEach(c => drawBCHCoin(ctx, c));
+
+            // 6. Dibujar Pastelitos Especiales
+            powerups.forEach(p => drawPowerupCake(ctx, p));
+
+            // 7. Dibujar Obstáculos (Si el jugador no está saltando, el obstáculo va antes o después según altura)
+            obstacles.forEach(o => drawObstacle(ctx, o));
+
+            // 8. Ondas magnéticas si el imán está activo
+            if (player.magnetTimer > 0) {
+                ctx.strokeStyle = 'rgba(232, 121, 249, 0.45)';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                const pulseR = 45 + ((now * 0.08) % 45);
+                ctx.arc(player.x, player.y, pulseR, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // 9. Dibujar Partículas
+            particles.forEach(pt => {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
+                ctx.fillStyle = pt.color;
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // 10. Dibujar el Vehículo del Jugador (con elevación si está saltando)
+            let jumpScale = 1;
+            if (player.isJumping) {
+                const progress = 1 - (player.jumpTimer / player.jumpDuration);
+                jumpScale = 1 + Math.sin(progress * Math.PI) * 0.36;
+            }
+
+            drawCartonCakeCar(ctx, player.x, player.y, player.width, player.height, selectedCarKey, {
+                tilt: player.tilt,
+                jumpScale,
+                time: now / 1000,
+                isHurt: player.invulnerableTimer > 0,
+                shield: player.shieldActive
+            });
+
+            // 11. Textos Flotantes (+BCH, ¡COMBO!, ¡SALTO!)
+            floatingTexts.forEach(ft => {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, ft.life / ft.maxLife);
+                ctx.font = '800 15px Fredoka, Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.strokeStyle = '#0F172A';
+                ctx.lineWidth = 4;
+                ctx.strokeText(ft.text, ft.x, ft.y);
+                ctx.fillStyle = ft.color;
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.restore();
+            });
+
+            ctx.restore();
+        }
+
+        // --- 12. BUCLE DE ANIMACIÓN PRINCIPAL ---
+        function gameLoop(now) {
+            const dt = Math.min(0.05, (now - lastTime) / 1000 || 0.016);
+            lastTime = now;
+
+            if (gameState === 'PLAYING') {
+                updateGame(dt);
+            } else if (gameState === 'MENU') {
+                // Movimiento decorativo de la carretera en el fondo del menú
+                roadOffset = (roadOffset + 120 * dt) % 80;
+            }
+
+            drawScene(now);
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- 13. EVENTOS DE TECLADO, TÁCTILES Y BOTONES DE INTERFAZ ---
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+            if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = true;
+            if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = true;
+
+            if (e.code === 'Space') {
+                e.preventDefault();
+                triggerJump();
+            }
+            if (e.code === 'KeyP' || e.code === 'Escape') {
+                togglePause();
+            }
+            if (e.code === 'KeyM') {
+                handleMuteToggle();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+            if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = false;
+            if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = false;
+        });
+
+        // Soporte para arrastrar directamente sobre la pista en móvil o PC
+        function updatePointerX(clientX) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = cw / rect.width;
+            pointerTargetX = (clientX - rect.left) * scaleX;
+        }
+
+        canvas.addEventListener('pointerdown', (e) => {
+            if (gameState !== 'PLAYING') return;
+            pointerActive = true;
+            updatePointerX(e.clientX);
+        });
+
+        canvas.addEventListener('pointermove', (e) => {
+            if (!pointerActive) return;
+            updatePointerX(e.clientX);
+        });
+
+        window.addEventListener('pointerup', () => {
+            pointerActive = false;
+            pointerTargetX = null;
+        });
+
+        // Botones táctiles en pantalla
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+        const btnJump = document.getElementById('btn-jump');
+
+        const bindHoldButton = (btn, keyName) => {
+            btn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                keys[keyName] = true;
+            });
+            btn.addEventListener('pointerup', () => { keys[keyName] = false; });
+            btn.addEventListener('pointerleave', () => { keys[keyName] = false; });
+            btn.addEventListener('pointercancel', () => { keys[keyName] = false; });
+        };
+
+        bindHoldButton(btnLeft, 'left');
+        bindHoldButton(btnRight, 'right');
+
+        btnJump.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            triggerJump();
+        });
+
+        // Selección de carro en el menú inicial
+        document.querySelectorAll('#car-selector .car-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('#car-selector .car-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                selectedCarKey = card.getAttribute('data-car');
+                sound.playBCH(2);
+            });
+        });
+
+        // Controles de Pausa y Sonido
+        function handleMuteToggle() {
+            const isMuted = sound.toggleMute();
+            document.getElementById('mute-icon').textContent = isMuted ? '🔇' : '🔊';
+        }
+
+        function togglePause() {
+            if (gameState === 'PLAYING') {
+                gameState = 'PAUSED';
+                pauseModal.classList.remove('hidden');
+            } else if (gameState === 'PAUSED') {
+                gameState = 'PLAYING';
+                pauseModal.classList.add('hidden');
+                lastTime = performance.now();
+            }
+        }
+
+        document.getElementById('btn-mute').addEventListener('click', handleMuteToggle);
+        document.getElementById('btn-pause').addEventListener('click', togglePause);
+        document.getElementById('btn-resume').addEventListener('click', togglePause);
+        document.getElementById('btn-restart-pause').addEventListener('click', startGame);
+
+        document.getElementById('btn-start').addEventListener('click', startGame);
+        document.getElementById('btn-retry').addEventListener('click', startGame);
+        document.getElementById('btn-change-car').addEventListener('click', () => {
+            gameoverModal.classList.add('hidden');
+            startModal.classList.remove('hidden');
+            gameState = 'MENU';
+        });
+
+        // Inicialización al cargar la página
+        window.onload = function () {
+            initRoadsideProps();
+            renderMenuCarPreviews();
+            updateLivesHUD();
+            lastTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>
